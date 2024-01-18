@@ -18,4 +18,5 @@ public class UserResponse {
     private ResponseCode responseCode;
     private ResponseMessage responseMessage;
     private List<AccountInfo> accountInfoList;
+    private boolean notificationSent;
 }

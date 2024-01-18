@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     AccountRepository accountRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final String NOTIFICATION_ENDPOINT = "https://run.mocky.io/v3/9769bf3a-b0b6-477a-9ff5-91f63010c9d3";
 
     /**
      * Criando a conta - salvando os dados no bd
@@ -181,9 +183,12 @@ public class UserServiceImpl implements UserService {
             accountRepository.save(sourceAccount);
             accountRepository.save(targetAccount);
 
+            boolean notificationSent = sendNotification();
+
             UserResponse userResponse = UserResponse.builder()
                     .responseCode(ResponseCode.SUCCESS)
                     .responseMessage(ResponseMessage.TRANSACTION_SUCCESSFULLY_COMPLETED)
+                    .notificationSent(notificationSent)
                     .accountInfoList(Arrays.asList(
                             AccountInfo.builder()
                                     .accountBalance(sourceAccount.getAccountBalance())
@@ -213,6 +218,21 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             logger.error("Internal Server Error: {}", e.getMessage());
             throw new RuntimeException("Internal Server Error");
+        }
+    }
+
+    private boolean sendNotification() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.getForEntity(NOTIFICATION_ENDPOINT, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return true;
+            } else {
+                throw new RuntimeException("Failed to send notification. HTTP Status Code: " + response.getStatusCodeValue());
+            }
+        } catch (Exception e) {
+            return false;
         }
     }
 
