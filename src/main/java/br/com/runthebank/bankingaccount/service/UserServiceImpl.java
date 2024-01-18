@@ -118,8 +118,6 @@ public class UserServiceImpl implements UserService {
 
 
             UserResponse userResponse = UserResponse.builder()
-                    .responseCode(ResponseCode.SUCCESS)
-                    .responseMessage(ResponseMessage.USER_CREATED_SUCCESSFULLY)
                     .accountInfoList(existingUser.getAccounts().stream()
                             .map(account -> AccountInfo.builder()
                                     .accountBalance(account.getAccountBalance())
@@ -251,7 +249,7 @@ public class UserServiceImpl implements UserService {
             List<UserResponse> userResponses = allUsers.stream()
                     .map(user -> UserResponse.builder()
                             .responseCode(ResponseCode.SUCCESS)
-                            .responseMessage(ResponseMessage.USER_CREATED_SUCCESSFULLY)
+                            .responseMessage(ResponseMessage.USER_FOUND_SUCCESSFULLY)
                             .accountInfoList(user.getAccounts().stream()
                                     .map(account -> AccountInfo.builder()
                                             .accountBalance(account.getAccountBalance())
