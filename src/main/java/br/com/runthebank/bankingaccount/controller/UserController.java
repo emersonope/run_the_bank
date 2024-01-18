@@ -30,27 +30,10 @@ public class UserController {
         return userService.addAccount(userId);
     }
 
-    @PostMapping("/{sourceUserId}/makePayment/{targetUserId}")
-    public ResponseEntity<UserResponse> makePayment(
-            @PathVariable Long sourceUserId,
-            @PathVariable Long targetUserId,
-            @RequestBody PaymentRequest paymentRequest) {
+    @PostMapping("/{userId}/makePayment")
+    public ResponseEntity<UserResponse> makePayment(@PathVariable Long userId, @RequestBody PaymentRequest paymentRequest) {
 
-        BigDecimal amount = paymentRequest.getAmount();
-        String destinationBranch = paymentRequest.getDestinationBranch();
-        String destinationAccountNumber = paymentRequest.getDestinationAccountNumber();
-        AccountType destinationAccountType = paymentRequest.getAccountType();
-
-        String cpf = null;
-        String cnpj = null;
-
-        if (destinationAccountType == AccountType.PF) {
-            cpf = paymentRequest.getCpf();
-        } else if (destinationAccountType == AccountType.PJ) {
-            cnpj = paymentRequest.getCnpj();
-        }
-        ResponseEntity<UserResponse> response = userService.makePayment(sourceUserId, targetUserId, amount, destinationBranch, destinationAccountNumber, cpf, cnpj);
-        return response;
+        return userService.makePayment(userId, paymentRequest);
     }
 
     @PostMapping("/deposit")

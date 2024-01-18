@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum ResponseMessage {
 
     USER_CREATED_SUCCESSFULLY("User created successfully."),
+    ACCOUNT_CREATED_SUCCESSFULLY("Account created."),
     USER_FOUND_SUCCESSFULLY("User found."),
     TRANSACTION_SUCCESSFULLY_COMPLETED("Transaction successfully completed.");
 

@@ -1,6 +1,7 @@
 package br.com.runthebank.bankingaccount.service;
 
 import br.com.runthebank.bankingaccount.dto.AccountInfo;
+import br.com.runthebank.bankingaccount.dto.PaymentRequest;
 import br.com.runthebank.bankingaccount.dto.UseRequest;
 import br.com.runthebank.bankingaccount.dto.UserResponse;
 import br.com.runthebank.bankingaccount.enums.AccountStatus;
@@ -119,6 +120,8 @@ public class UserServiceImpl implements UserService {
 
 
             UserResponse userResponse = UserResponse.builder()
+                    .responseCode(ResponseCode.SUCCESS)
+                    .responseMessage(ResponseMessage.ACCOUNT_CREATED_SUCCESSFULLY)
                     .accountInfoList(existingUser.getAccounts().stream()
                             .map(account -> AccountInfo.builder()
                                     .accountBalance(account.getAccountBalance())
@@ -148,32 +151,39 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Transactional
     @Override
-    public ResponseEntity<UserResponse> makePayment(Long sourceUserId, Long targetUserId, BigDecimal amount, String destinationBranch, String destinationAccountNumber, String cpf, String cnpj) {
+    @Transactional
+    public ResponseEntity<UserResponse> makePayment(Long userId, PaymentRequest paymentRequest) {
         try {
-            User sourceUser = userRepository.findById(sourceUserId)
-                    .orElseThrow(() -> new IllegalArgumentException("Source User not found with id: " + sourceUserId));
-
-            User targetUser = userRepository.findById(targetUserId)
-                    .orElseThrow(() -> new IllegalArgumentException("Target User not found with id: " + targetUserId));
+            User sourceUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("Source User not found with id: " + userId));
 
             validateUser(sourceUser);
+
+            String sourceBranch = paymentRequest.getSourceBranch();
+            String sourceAccountNumber = paymentRequest.getSourceAccountNumber();
+            AccountType sourceAccountType = paymentRequest.getSourceAccountType();
+
+            Account sourceAccount = getActiveAccount(sourceUser, sourceBranch, sourceAccountNumber, sourceAccountType);
+
+            BigDecimal amount = paymentRequest.getAmount();
+            String destinationBranch = paymentRequest.getDestinationBranch();
+            String destinationAccountNumber = paymentRequest.getDestinationAccountNumber();
+            AccountType destinationAccountType = paymentRequest.getAccountType();
+
+            User targetUser = userRepository.findUserByAccount(destinationBranch, destinationAccountNumber, destinationAccountType)
+                    .orElseThrow(() -> new IllegalArgumentException("Target User not found with account details."));
+
             validateUser(targetUser);
 
-            Account sourceAccount = getActiveAccount(sourceUser);
-            Account targetAccount = getActiveAccount(targetUser);
+            Account targetAccount = getActiveAccount(targetUser, destinationBranch, destinationAccountNumber, destinationAccountType);
 
             if (sourceAccount.getId().equals(targetAccount.getId())) {
                 throw new IllegalArgumentException("Source and target accounts must be different.");
             }
 
-            if (sourceAccount.getStatus() != AccountStatus.ATIVA) {
-                throw new IllegalArgumentException("Source account is not active.");
-            }
-
             if (sourceAccount.getAccountBalance().compareTo(amount) < 0) {
-                throw new IllegalArgumentException("Insufficient funds in the source account.");
+                throw new InsufficientFundsException("Insufficient funds in the source account.");
             }
 
             sourceAccount.setAccountBalance(sourceAccount.getAccountBalance().subtract(amount));
@@ -189,24 +199,8 @@ public class UserServiceImpl implements UserService {
                     .responseMessage(ResponseMessage.TRANSACTION_SUCCESSFULLY_COMPLETED)
                     .notificationSent(notificationSent)
                     .accountInfoList(Arrays.asList(
-                            AccountInfo.builder()
-                                    .accountBalance(sourceAccount.getAccountBalance())
-                                    .branchNumber(sourceAccount.getBranchNumber())
-                                    .accountNumber(sourceAccount.getAccountNumber())
-                                    .accountName(sourceUser.getFirstName() + " " + sourceUser.getLastName())
-                                    .cpf(sourceUser.getCpf())
-                                    .cnpj(sourceUser.getCnpj())
-                                    .status(sourceAccount.getStatus())
-                                    .build(),
-                            AccountInfo.builder()
-                                    .accountBalance(targetAccount.getAccountBalance())
-                                    .branchNumber(targetAccount.getBranchNumber())
-                                    .accountNumber(targetAccount.getAccountNumber())
-                                    .accountName(targetUser.getFirstName() + " " + targetUser.getLastName())
-                                    .cpf(targetUser.getCpf())
-                                    .cnpj(targetUser.getCnpj())
-                                    .status(targetAccount.getStatus())
-                                    .build()
+                            buildAccountInfo(sourceAccount, sourceUser),
+                            buildAccountInfo(targetAccount, targetUser)
                     ))
                     .build();
 
@@ -219,6 +213,29 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Internal Server Error");
         }
     }
+
+    private Account getActiveAccount(User user, String branchNumber, String accountNumber, AccountType accountType) {
+        return user.getAccounts().stream()
+                .filter(account -> account.getStatus() == AccountStatus.ATIVA
+                        && account.getBranchNumber().equals(branchNumber)
+                        && account.getAccountNumber().equals(accountNumber)
+                        && account.getAccountType() == accountType)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("User does not have an active account with the specified details."));
+    }
+
+    private AccountInfo buildAccountInfo(Account account, User user) {
+        return AccountInfo.builder()
+                .accountBalance(account.getAccountBalance())
+                .branchNumber(account.getBranchNumber())
+                .accountNumber(account.getAccountNumber())
+                .accountName(user.getFirstName() + " " + user.getLastName())
+                .cpf(user.getCpf())
+                .cnpj(user.getCnpj())
+                .status(account.getStatus())
+                .build();
+    }
+
 
     private boolean sendNotification() {
         try {

@@ -24,6 +24,12 @@ public class PaymentRequest {
     private String destinationBranch;
     @NotBlank(message = "Destination account number is required")
     private String destinationAccountNumber;
+    @NotBlank(message = "Source branch is required")
+    private String sourceBranch;
+    @NotBlank(message = "Source account number is required")
+    private String sourceAccountNumber;
     @NotNull(message = "Account type is required")
     private AccountType accountType;
+    @NotNull(message = "Source account type is required")
+    private AccountType sourceAccountType;
 }
