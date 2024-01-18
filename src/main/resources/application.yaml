@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: RUN-THE-BANK-SERVICE
+  datasource:
+    url: jdbc:postgresql://localhost:5436/run_the_bank
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
