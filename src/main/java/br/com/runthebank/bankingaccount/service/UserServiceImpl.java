@@ -104,8 +104,16 @@ public class UserServiceImpl implements UserService {
 
             validateUser(existingUser);
 
+            String existingBranchNumber = existingUser.getAccounts().stream()
+                    .filter(account -> account.getStatus() == AccountStatus.ATIVA)
+                    .findFirst()
+                    .map(Account::getBranchNumber)
+                    .orElseThrow(() -> new IllegalArgumentException("User does not have an active account."));
+
             Account newAccount = Account.createAccountForUser(existingUser);
+            newAccount.setBranchNumber(existingBranchNumber); //usar a agencia existente para criacao da cc
             accountRepository.save(newAccount);
+
 
             UserResponse userResponse = UserResponse.builder()
                     .responseCode(ResponseCode.SUCCESS)
