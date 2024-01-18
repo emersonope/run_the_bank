@@ -7,6 +7,17 @@ Esta API permite a criação de contas bancárias, adição de contas a usuário
 ``
 http://localhost:8080/swagger-ui/index.html
 ``
+
+### Para rodar a aplicacao sera necessario usar o docker ou ajustar as configuracoes no application.yaml para seu banco de preferencia
+
+- Entre na pasta raiz e execute o seguinte comando para subir o banco de dados:
+
+``
+  docker-compose up
+``
+
+Em seguida rode a aplicacao normalmente na sua IDE de preferencia!
+
 ## Endpoints Disponíveis
 
 ### 1. Criação de Conta Bancária
