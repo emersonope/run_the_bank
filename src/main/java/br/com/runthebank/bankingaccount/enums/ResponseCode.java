@@ -1,4 +1,6 @@
 package br.com.runthebank.bankingaccount.enums;
 
-public class ResponseCode {
+public enum ResponseCode {
+    SUCCESS,
+    ERROR,
 }

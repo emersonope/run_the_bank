@@ -1,4 +1,6 @@
 package br.com.runthebank.bankingaccount.enums;
 
-public class AccountType {
+public enum AccountType {
+    PF,
+    PJ
 }
