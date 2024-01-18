@@ -5,6 +5,7 @@ import br.com.runthebank.bankingaccount.dto.UseRequest;
 import br.com.runthebank.bankingaccount.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface UserService {
@@ -12,6 +13,10 @@ public interface UserService {
     ResponseEntity<UserResponse> createAccount(UseRequest useRequest);
 
     ResponseEntity<UserResponse> addAccount(Long userId);
+
+//    ResponseEntity<UserResponse> makePayment(Long sourceUserId, Long targetUserId, BigDecimal amount);
+
+    ResponseEntity<UserResponse> makePayment(Long sourceUserId, Long targetUserId, BigDecimal amount, String destinationBranch, String destinationAccountNumber, String cpf, String cnpj);
 
     ResponseEntity<List<UserResponse>> getAllUsersAndAccounts();
 

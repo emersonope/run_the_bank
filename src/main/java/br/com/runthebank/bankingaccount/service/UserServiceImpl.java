@@ -7,13 +7,15 @@ import br.com.runthebank.bankingaccount.enums.AccountStatus;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import br.com.runthebank.bankingaccount.enums.ResponseCode;
 import br.com.runthebank.bankingaccount.enums.ResponseMessage;
+import br.com.runthebank.bankingaccount.excecoes.InactiveAccountException;
+import br.com.runthebank.bankingaccount.excecoes.InsufficientFundsException;
 import br.com.runthebank.bankingaccount.excecoes.UserAlreadyExistsException;
 import br.com.runthebank.bankingaccount.model.Account;
 import br.com.runthebank.bankingaccount.model.User;
 import br.com.runthebank.bankingaccount.repository.AccountRepository;
 import br.com.runthebank.bankingaccount.repository.UserRepository;
-import br.com.runthebank.bankingaccount.utils.AccountUtils;
 import br.com.runthebank.bankingaccount.utils.AccountValidationUtils;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -101,9 +104,8 @@ public class UserServiceImpl implements UserService {
 
             validateUser(existingUser);
 
-            // Crie a nova conta vinculada ao usuário existente
             Account newAccount = Account.createAccountForUser(existingUser);
-            newAccount = accountRepository.save(newAccount);
+            accountRepository.save(newAccount);
 
             UserResponse userResponse = UserResponse.builder()
                     .responseCode(ResponseCode.SUCCESS)
@@ -123,10 +125,10 @@ public class UserServiceImpl implements UserService {
 
             return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            logger.error("Dados inválidos: {}", e.getMessage());
+            logger.error("Invalid Data: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            logger.error("Erro interno do servidor: {}", e.getMessage());
+            logger.error("Internal Server Error: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -135,6 +137,82 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new IllegalArgumentException("User not found.");
         }
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<UserResponse> makePayment(Long sourceUserId, Long targetUserId, BigDecimal amount, String destinationBranch, String destinationAccountNumber, String cpf, String cnpj) {
+        try {
+            User sourceUser = userRepository.findById(sourceUserId)
+                    .orElseThrow(() -> new IllegalArgumentException("Source User not found with id: " + sourceUserId));
+
+            User targetUser = userRepository.findById(targetUserId)
+                    .orElseThrow(() -> new IllegalArgumentException("Target User not found with id: " + targetUserId));
+
+            validateUser(sourceUser);
+            validateUser(targetUser);
+
+            Account sourceAccount = getActiveAccount(sourceUser);
+            Account targetAccount = getActiveAccount(targetUser);
+
+            if (sourceAccount.getId().equals(targetAccount.getId())) {
+                throw new IllegalArgumentException("Source and target accounts must be different.");
+            }
+
+            if (sourceAccount.getStatus() != AccountStatus.ATIVA) {
+                throw new IllegalArgumentException("Source account is not active.");
+            }
+
+            if (sourceAccount.getAccountBalance().compareTo(amount) < 0) {
+                throw new IllegalArgumentException("Insufficient funds in the source account.");
+            }
+
+            sourceAccount.setAccountBalance(sourceAccount.getAccountBalance().subtract(amount));
+            targetAccount.setAccountBalance(targetAccount.getAccountBalance().add(amount));
+
+            accountRepository.save(sourceAccount);
+            accountRepository.save(targetAccount);
+
+            UserResponse userResponse = UserResponse.builder()
+                    .responseCode(ResponseCode.SUCCESS)
+                    .responseMessage(ResponseMessage.TRANSACTION_SUCCESSFULLY_COMPLETED)
+                    .accountInfoList(Arrays.asList(
+                            AccountInfo.builder()
+                                    .accountBalance(sourceAccount.getAccountBalance())
+                                    .branchNumber(sourceAccount.getBranchNumber())
+                                    .accountNumber(sourceAccount.getAccountNumber())
+                                    .accountName(sourceUser.getFirstName() + " " + sourceUser.getLastName())
+                                    .cpf(sourceUser.getCpf())
+                                    .cnpj(sourceUser.getCnpj())
+                                    .status(sourceAccount.getStatus())
+                                    .build(),
+                            AccountInfo.builder()
+                                    .accountBalance(targetAccount.getAccountBalance())
+                                    .branchNumber(targetAccount.getBranchNumber())
+                                    .accountNumber(targetAccount.getAccountNumber())
+                                    .accountName(targetUser.getFirstName() + " " + targetUser.getLastName())
+                                    .cpf(targetUser.getCpf())
+                                    .cnpj(targetUser.getCnpj())
+                                    .status(targetAccount.getStatus())
+                                    .build()
+                    ))
+                    .build();
+
+            return new ResponseEntity<>(userResponse, HttpStatus.OK);
+        } catch (InactiveAccountException | InsufficientFundsException e) {
+            logger.error("Account error: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Internal Server Error: {}", e.getMessage());
+            throw new RuntimeException("Internal Server Error");
+        }
+    }
+
+    private Account getActiveAccount(User user) {
+        return user.getAccounts().stream()
+                .filter(account -> account.getStatus() == AccountStatus.ATIVA)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("User does not have an active account."));
     }
 
     @Override
@@ -162,7 +240,7 @@ public class UserServiceImpl implements UserService {
 
             return new ResponseEntity<>(userResponses, HttpStatus.OK);
         } catch (Exception e) {
-            logger.error("Erro interno do servidor: {}", e.getMessage());
+            logger.error("Server Error: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
