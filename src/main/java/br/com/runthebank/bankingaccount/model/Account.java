@@ -1,6 +1,8 @@
 package br.com.runthebank.bankingaccount.model;
 
+import br.com.runthebank.bankingaccount.enums.AccountStatus;
 import br.com.runthebank.bankingaccount.enums.AccountType;
+import br.com.runthebank.bankingaccount.utils.AccountUtils;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,8 +31,33 @@ public class Account {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    private AccountStatus status;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime modifiedAt;
+
+    public static Account createNewAccount(AccountType accountType) {
+        return Account.builder()
+                .branchNumber(AccountUtils.generateBranchNumber())
+                .accountNumber(AccountUtils.generateAccountNumber())
+                .accountBalance(BigDecimal.ZERO)
+                .accountType(accountType)
+                .status(AccountStatus.ATIVA)
+                .build();
+    }
+
+
+    public static Account createAccountForUser(User user) {
+        AccountType accountType = user.getAccounts().isEmpty() ? AccountType.PF : user.getAccounts().get(0).getAccountType();
+
+        return Account.builder()
+                .branchNumber(AccountUtils.generateBranchNumber())
+                .accountNumber(AccountUtils.generateAccountNumber())
+                .accountBalance(BigDecimal.ZERO)
+                .accountType(accountType)
+                .user(user)
+                .status(AccountStatus.ATIVA)
+                .build();
+    }
 }

@@ -1,5 +1,6 @@
 package br.com.runthebank.bankingaccount.dto;
 
+import br.com.runthebank.bankingaccount.enums.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +20,5 @@ public class AccountInfo {
     private BigDecimal accountBalance;
     private String cpf;
     private String cnpj;
+    private AccountStatus status;
 }

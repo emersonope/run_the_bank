@@ -3,6 +3,7 @@ package br.com.runthebank.bankingaccount.service;
 import br.com.runthebank.bankingaccount.dto.AccountInfo;
 import br.com.runthebank.bankingaccount.dto.UseRequest;
 import br.com.runthebank.bankingaccount.dto.UserResponse;
+import br.com.runthebank.bankingaccount.enums.AccountStatus;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import br.com.runthebank.bankingaccount.enums.ResponseCode;
 import br.com.runthebank.bankingaccount.enums.ResponseMessage;
@@ -12,6 +13,7 @@ import br.com.runthebank.bankingaccount.model.User;
 import br.com.runthebank.bankingaccount.repository.AccountRepository;
 import br.com.runthebank.bankingaccount.repository.UserRepository;
 import br.com.runthebank.bankingaccount.utils.AccountUtils;
+import br.com.runthebank.bankingaccount.utils.AccountValidationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,7 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
 
     @Autowired
-    private AccountRepository accountRepository;
+    AccountRepository accountRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -41,7 +43,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<UserResponse> createAccount(UseRequest useRequest) {
         try {
-            validateAccountType(useRequest);
+            AccountValidationUtils.validateAccountType(useRequest);
 
             String document = getDocument(useRequest);
 
@@ -49,29 +51,11 @@ public class UserServiceImpl implements UserService {
                 throw new UserAlreadyExistsException("User with the provided document already exists.");
             }
 
-            Account newAccount = Account.builder()
-                    .branchNumber(AccountUtils.generateBranchNumber())
-                    .accountNumber(AccountUtils.generateAccountNumber())
-                    .accountBalance(BigDecimal.ZERO)
-                    .accountType(useRequest.getAccountType())
-                    .build();
-
+            Account newAccount = Account.createNewAccount(useRequest.getAccountType());
             newAccount = accountRepository.save(newAccount);
 
-            User newUser = User.builder()
-                    .firstName(useRequest.getFirstName())
-                    .lastName(useRequest.getLastName())
-                    .gender(useRequest.getGender())
-                    .address(useRequest.getAddress())
-                    .stateOfOriging(useRequest.getStateOfOriging())
-                    .email(useRequest.getEmail())
-                    .cpf(useRequest.getAccountType() == AccountType.PF ? useRequest.getCpf() : null)
-                    .cnpj(useRequest.getAccountType() == AccountType.PJ ? useRequest.getCnpj() : null)
-                    .phoneNumber(useRequest.getPhoneNumber())
-                    .build();
-
+            User newUser = User.createUserFromRequest(useRequest, newAccount);
             newUser.addAccount(newAccount);
-
             newUser = userRepository.save(newUser);
 
             final User finalUser = newUser;
@@ -87,6 +71,7 @@ public class UserServiceImpl implements UserService {
                                     .accountName(finalUser.getFirstName() + " " + finalUser.getLastName())
                                     .cpf(finalUser.getCpf())
                                     .cnpj(finalUser.getCnpj())
+                                    .status(account.getStatus())
                                     .build())
                             .collect(Collectors.toList()))
                     .build();
@@ -101,34 +86,6 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             logger.error("Server Error: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-
-    }
-
-    private void validateAccountType(UseRequest useRequest) {
-        if (useRequest.getAccountType() == null) {
-            throw new IllegalArgumentException("Account type must be specified.");
-        }
-
-        if (useRequest.getAccountType() == AccountType.PF) {
-            if (useRequest.getCnpj() != null) {
-                throw new IllegalArgumentException("CNPJ should not be provided for a PF account.");
-            }
-
-            if (useRequest.getCpf() == null || useRequest.getCpf().isEmpty()) {
-                throw new IllegalArgumentException("CPF is required for a PF account.");
-            }
-        }
-
-        if (useRequest.getAccountType() == AccountType.PJ) {
-            if (useRequest.getCpf() != null) {
-                throw new IllegalArgumentException("CPF should not be provided for a PJ account.");
-            }
-
-            if (useRequest.getCnpj() == null || useRequest.getCnpj().isEmpty()) {
-                throw new IllegalArgumentException("CNPJ is required for a PJ account.");
-            }
         }
     }
 
@@ -145,14 +102,7 @@ public class UserServiceImpl implements UserService {
             validateUser(existingUser);
 
             // Crie a nova conta vinculada ao usuário existente
-            Account newAccount = Account.builder()
-                    .branchNumber(AccountUtils.generateBranchNumber())
-                    .accountNumber(AccountUtils.generateAccountNumber())
-                    .accountBalance(BigDecimal.ZERO)
-                    .accountType(existingUser.getAccounts().isEmpty() ? AccountType.PF : existingUser.getAccounts().get(0).getAccountType())
-                    .user(existingUser)
-                    .build();
-
+            Account newAccount = Account.createAccountForUser(existingUser);
             newAccount = accountRepository.save(newAccount);
 
             UserResponse userResponse = UserResponse.builder()
@@ -166,6 +116,7 @@ public class UserServiceImpl implements UserService {
                                     .accountName(existingUser.getFirstName() + " " + existingUser.getLastName())
                                     .cpf(existingUser.getCpf())
                                     .cnpj(existingUser.getCnpj())
+                                    .status(account.getStatus())
                                     .build())
                             .collect(Collectors.toList()))
                     .build();
@@ -203,6 +154,7 @@ public class UserServiceImpl implements UserService {
                                             .accountName(user.getFirstName() + " " + user.getLastName())
                                             .cpf(user.getCpf())
                                             .cnpj(user.getCnpj())
+                                            .status(account.getStatus())
                                             .build())
                                     .collect(Collectors.toList()))
                             .build())
@@ -227,6 +179,7 @@ public class UserServiceImpl implements UserService {
                                     .accountName(user.getFirstName() + " " + user.getLastName())
                                     .cpf(user.getCpf())
                                     .cnpj(user.getCnpj())
+                                    .status(account.getStatus())
                                     .build())
                             .collect(Collectors.toList()))
                     .orElseThrow(() -> new IllegalArgumentException("Client not found with id: " + clientId));

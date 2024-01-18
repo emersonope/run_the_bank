@@ -1,5 +1,7 @@
 package br.com.runthebank.bankingaccount.model;
 
+import br.com.runthebank.bankingaccount.dto.UseRequest;
+import br.com.runthebank.bankingaccount.enums.AccountType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -43,6 +45,19 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime modifiedAt;
 
+    public static User createUserFromRequest(UseRequest useRequest, Account newAccount) {
+        return User.builder()
+                .firstName(useRequest.getFirstName())
+                .lastName(useRequest.getLastName())
+                .gender(useRequest.getGender())
+                .address(useRequest.getAddress())
+                .stateOfOriging(useRequest.getStateOfOriging())
+                .email(useRequest.getEmail())
+                .cpf(useRequest.getAccountType() == AccountType.PF ? useRequest.getCpf() : null)
+                .cnpj(useRequest.getAccountType() == AccountType.PJ ? useRequest.getCnpj() : null)
+                .phoneNumber(useRequest.getPhoneNumber())
+                .build();
+    }
     public void addAccount(Account account) {
         if (accounts == null) {
             accounts = new ArrayList<>();
