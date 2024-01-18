@@ -70,17 +70,20 @@ Esta API permite a criação de contas bancárias, adição de contas a usuário
 
 ### 3.1 Realização de Pagamento com Notificação
 
-- **URL:** `POST /api/bankuser/{sourceUserId}/makePayment/{targetUserId}`
+- **URL:** `POST /api/bankuser/{userId}/makePayment`
 - **Descrição:** Realiza um pagamento entre dois usuários com notificação.
 - **Parâmetros de Caminho (Exemplo):** `{sourceUserId}` - ID do usuário de origem, `{targetUserId}` - ID do usuário de destino.
 - **Corpo da Requisição Para PF e se for PJ substitua o campo cpf por cnpj:**
   ```json
   {
-  "amount": 350.00,
-  "destinationBranch": "5444",
-  "destinationAccountNumber": "496376",
-  "accountType": "PJ",
-  "cpf": "63.698.103/0001-97"
+  "amount": 100.00,
+  "cpf": "123.456.789-09",
+  "destinationBranch": "1477",
+  "destinationAccountNumber": "808777",
+  "accountType": "PF",
+  "sourceBranch": "1477",
+  "sourceAccountNumber": "215482",
+  "sourceAccountType": "PF"
   }
 
 - **Resposta:**
@@ -92,20 +95,20 @@ Esta API permite a criação de contas bancárias, adição de contas a usuário
   "accountInfoList": [
     {
       "accountName": "John Doe",
-      "branchNumber": "5249",
-      "accountNumber": "896502",
-      "accountBalance": 650.00,
+      "branchNumber": "1477",
+      "accountNumber": "215482",
+      "accountBalance": 900.00,
       "cpf": "123.456.789-09",
       "cnpj": null,
       "status": "ATIVA"
     },
     {
       "accountName": "John Doe",
-      "branchNumber": "5444",
-      "accountNumber": "496376",
-      "accountBalance": 350.00,
-      "cpf": null,
-      "cnpj": "63.698.103/0001-97",
+      "branchNumber": "1477",
+      "accountNumber": "808777",
+      "accountBalance": 100.00,
+      "cpf": "123.456.789-09",
+      "cnpj": null,
       "status": "ATIVA"
     }
   ],
