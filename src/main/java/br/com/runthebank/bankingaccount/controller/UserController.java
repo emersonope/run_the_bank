@@ -1,9 +1,6 @@
 package br.com.runthebank.bankingaccount.controller;
 
-import br.com.runthebank.bankingaccount.dto.AccountInfo;
-import br.com.runthebank.bankingaccount.dto.PaymentRequest;
-import br.com.runthebank.bankingaccount.dto.UseRequest;
-import br.com.runthebank.bankingaccount.dto.UserResponse;
+import br.com.runthebank.bankingaccount.dto.*;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import br.com.runthebank.bankingaccount.model.Account;
 import br.com.runthebank.bankingaccount.service.UserServiceImpl;
@@ -54,6 +51,15 @@ public class UserController {
         }
         ResponseEntity<UserResponse> response = userService.makePayment(sourceUserId, targetUserId, amount, destinationBranch, destinationAccountNumber, cpf, cnpj);
         return response;
+    }
+
+    @PostMapping("/deposit")
+    public ResponseEntity<UserResponse> depositToAccount(@RequestBody DepositRequestDTO depositRequestDTO) {
+        String branchNumber = depositRequestDTO.getBranchNumber();
+        String accountNumber = depositRequestDTO.getAccountNumber();
+        BigDecimal amount = depositRequestDTO.getAmount();
+
+        return userService.depositToAccount(branchNumber, accountNumber, amount);
     }
 
     @GetMapping("/allUsersAndAccounts")

@@ -14,9 +14,9 @@ public interface UserService {
 
     ResponseEntity<UserResponse> addAccount(Long userId);
 
-//    ResponseEntity<UserResponse> makePayment(Long sourceUserId, Long targetUserId, BigDecimal amount);
-
     ResponseEntity<UserResponse> makePayment(Long sourceUserId, Long targetUserId, BigDecimal amount, String destinationBranch, String destinationAccountNumber, String cpf, String cnpj);
+
+    ResponseEntity<UserResponse> depositToAccount(String branchNumber, String accountNumber, BigDecimal amount);
 
     ResponseEntity<List<UserResponse>> getAllUsersAndAccounts();
 

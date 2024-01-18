@@ -26,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -232,6 +233,56 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public ResponseEntity<UserResponse> depositToAccount(String branchNumber, String accountNumber, BigDecimal amount) {
+        try {
+
+            if (branchNumber == null || accountNumber == null || amount == null) {
+                throw new IllegalArgumentException("Branch number, account number, and amount are required.");
+            }
+
+            Account targetAccount = accountRepository.findByBranchNumberAndAccountNumber(branchNumber, accountNumber)
+                    .orElseThrow(() -> new IllegalArgumentException("Account not found with provided branch and account number."));
+
+            if (targetAccount.getStatus() != AccountStatus.ATIVA) {
+                throw new InactiveAccountException("Cannot deposit to an inactive account.");
+            }
+
+            targetAccount.setAccountBalance(targetAccount.getAccountBalance().add(amount));
+            accountRepository.save(targetAccount);
+
+            UserResponse userResponse = UserResponse.builder()
+                    .responseCode(ResponseCode.SUCCESS)
+                    .responseMessage(ResponseMessage.TRANSACTION_SUCCESSFULLY_COMPLETED)
+                    .accountInfoList(Collections.singletonList(
+                            AccountInfo.builder()
+                                    .accountBalance(targetAccount.getAccountBalance())
+                                    .branchNumber(targetAccount.getBranchNumber())
+                                    .accountNumber(targetAccount.getAccountNumber())
+                                    .accountName(getAccountHolderName(targetAccount))
+                                    .cpf(targetAccount.getUser().getCpf())
+                                    .cnpj(targetAccount.getUser().getCnpj())
+                                    .status(targetAccount.getStatus())
+                                    .build()
+                    ))
+                    .build();
+
+            sendNotification();
+
+            return new ResponseEntity<>(userResponse, HttpStatus.OK);
+        } catch (IllegalArgumentException | InactiveAccountException e) {
+            logger.error("Invalid data or inactive account: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            logger.error("Internal Server Error: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String getAccountHolderName(Account account) {
+        return account.getUser().getFirstName() + " " + account.getUser().getLastName();
     }
 
     private Account getActiveAccount(User user) {
