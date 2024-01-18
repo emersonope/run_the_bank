@@ -4,6 +4,9 @@ import br.com.runthebank.bankingaccount.dto.*;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import br.com.runthebank.bankingaccount.model.Account;
 import br.com.runthebank.bankingaccount.service.UserServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,22 +23,46 @@ public class UserController {
     @Autowired
     UserServiceImpl userService;
 
+    @Operation(description = "Create an user and account")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User and account were created"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
+    })
     @PostMapping
     public ResponseEntity<UserResponse> createAccount(@RequestBody UseRequest useRequest) {
         return userService.createAccount(useRequest);
     }
 
+    @Operation(description = "Create an account to an existing user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Account was created"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
+    })
     @PostMapping("/{userId}/addAccount")
     public ResponseEntity<UserResponse> addAccount(@PathVariable Long userId) {
         return userService.addAccount(userId);
     }
 
+    @Operation(description = "Make banking transaction between accounts")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Transferred successfully"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
+    })
     @PostMapping("/{userId}/makePayment")
     public ResponseEntity<UserResponse> makePayment(@PathVariable Long userId, @RequestBody PaymentRequest paymentRequest) {
 
         return userService.makePayment(userId, paymentRequest);
     }
 
+    @Operation(description = "Deposit an amount into an account")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Deposited successfully"),
+            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
+    })
     @PostMapping("/deposit")
     public ResponseEntity<UserResponse> depositToAccount(@RequestBody DepositRequestDTO depositRequestDTO) {
         String branchNumber = depositRequestDTO.getBranchNumber();
@@ -45,11 +72,22 @@ public class UserController {
         return userService.depositToAccount(branchNumber, accountNumber, amount);
     }
 
+    @Operation(description = "Return the user data")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Return the user informatio & account"),
+            @ApiResponse(responseCode = "400", description = "User do not exist")
+    })
     @GetMapping("/allUsersAndAccounts")
     public ResponseEntity<List<UserResponse>> getAllUsersAndAccounts() {
         return userService.getAllUsersAndAccounts();
     }
 
+    @Operation(description = "Return the user data by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Return the user info by ID"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
+    })
     @GetMapping("/userAccounts/{clientId}")
     public ResponseEntity<List<AccountInfo>> getUserAccounts(@PathVariable Long clientId) {
         return userService.getUserAccounts(clientId);
