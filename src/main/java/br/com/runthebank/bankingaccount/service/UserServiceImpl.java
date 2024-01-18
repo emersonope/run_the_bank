@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,7 +71,6 @@ public class UserServiceImpl implements UserService {
                     .build();
 
             newUser.addAccount(newAccount);
-//        User saveUser = userRepository.save(newUser);
 
             newUser = userRepository.save(newUser);
 
@@ -93,13 +93,13 @@ public class UserServiceImpl implements UserService {
 
             return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
         } catch (UserAlreadyExistsException e) {
-            logger.error("Erro ao criar conta do usuário: {}", e.getMessage());
+            logger.error("There was an error while trying to create an User: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         } catch (IllegalArgumentException e) {
-            logger.error("Dados Invalidos: {}", e.getMessage());
+            logger.error("Invalid data: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            logger.error("??: {}", e.getMessage());
+            logger.error("Server Error: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -132,9 +132,109 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
     private String getDocument(UseRequest useRequest) {
         return useRequest.getAccountType() == AccountType.PF ? useRequest.getCpf() : useRequest.getCnpj();
     }
 
+    @Override
+    public ResponseEntity<UserResponse> addAccount(Long userId) {
+        try {
+            User existingUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+            validateUser(existingUser);
+
+            // Crie a nova conta vinculada ao usuário existente
+            Account newAccount = Account.builder()
+                    .branchNumber(AccountUtils.generateBranchNumber())
+                    .accountNumber(AccountUtils.generateAccountNumber())
+                    .accountBalance(BigDecimal.ZERO)
+                    .accountType(existingUser.getAccounts().isEmpty() ? AccountType.PF : existingUser.getAccounts().get(0).getAccountType())
+                    .user(existingUser)
+                    .build();
+
+            newAccount = accountRepository.save(newAccount);
+
+            UserResponse userResponse = UserResponse.builder()
+                    .responseCode(ResponseCode.SUCCESS)
+                    .responseMessage(ResponseMessage.USER_CREATED_SUCCESSFULLY)
+                    .accountInfoList(existingUser.getAccounts().stream()
+                            .map(account -> AccountInfo.builder()
+                                    .accountBalance(account.getAccountBalance())
+                                    .branchNumber(account.getBranchNumber())
+                                    .accountNumber(account.getAccountNumber())
+                                    .accountName(existingUser.getFirstName() + " " + existingUser.getLastName())
+                                    .cpf(existingUser.getCpf())
+                                    .cnpj(existingUser.getCnpj())
+                                    .build())
+                            .collect(Collectors.toList()))
+                    .build();
+
+            return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            logger.error("Dados inválidos: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            logger.error("Erro interno do servidor: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void validateUser(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User not found.");
+        }
+    }
+
+    @Override
+    public ResponseEntity<List<UserResponse>> getAllUsersAndAccounts() {
+        try {
+            List<User> allUsers = userRepository.findAll();
+
+            List<UserResponse> userResponses = allUsers.stream()
+                    .map(user -> UserResponse.builder()
+                            .responseCode(ResponseCode.SUCCESS)
+                            .responseMessage(ResponseMessage.USER_CREATED_SUCCESSFULLY)
+                            .accountInfoList(user.getAccounts().stream()
+                                    .map(account -> AccountInfo.builder()
+                                            .accountBalance(account.getAccountBalance())
+                                            .branchNumber(account.getBranchNumber())
+                                            .accountNumber(account.getAccountNumber())
+                                            .accountName(user.getFirstName() + " " + user.getLastName())
+                                            .cpf(user.getCpf())
+                                            .cnpj(user.getCnpj())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build())
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(userResponses, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("Erro interno do servidor: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<List<AccountInfo>> getUserAccounts(Long clientId) {
+        try {
+            List<AccountInfo> userAccounts = userRepository.findById(clientId)
+                    .map(user -> user.getAccounts().stream()
+                            .map(account -> AccountInfo.builder()
+                                    .accountBalance(account.getAccountBalance())
+                                    .branchNumber(account.getBranchNumber())
+                                    .accountNumber(account.getAccountNumber())
+                                    .accountName(user.getFirstName() + " " + user.getLastName())
+                                    .cpf(user.getCpf())
+                                    .cnpj(user.getCnpj())
+                                    .build())
+                            .collect(Collectors.toList()))
+                    .orElseThrow(() -> new IllegalArgumentException("Client not found with id: " + clientId));
+
+            return new ResponseEntity<>(userAccounts, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("Internal Server Error: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
