@@ -113,9 +113,41 @@ Esta API permite a criação de contas bancárias, adição de contas a usuário
 }
 ```
 
-## 4. Consulta de Todas as Contas de Usuários
+### 4. Deposito bancario
 
-### 4.1 Obtenção de Todas as Contas
+- **URL:** `POST /api/bankuser/deposit`
+- **Descrição:** Realiza um deposito em uma conta bancária associada a um usuário.
+- **Corpo da Requisição:**
+  ```json
+  {
+  "branchNumber": "7255",
+  "accountNumber": "699697",
+  "amount": 1000.00
+  }
+
+- **Resposta da Requisição:**
+
+```json
+
+{
+  "accountInfoList": [
+    {
+      "accountName": "John Doe",
+      "branchNumber": "7255",
+      "accountNumber": "699697",
+      "accountBalance": 1000.00,
+      "cpf": "123.456.789-09",
+      "cnpj": null,
+      "status": "ATIVA"
+    }
+  ],
+  "notificationSent": false
+}
+```
+
+## 5. Consulta de Todas as Contas de Usuários
+
+### 5.1 Obtenção de Todas as Contas
 
 - **URL:** `GET /api/bankuser/allUsersAndAccounts`
 - **Descrição:** Retorna informações de todas as contas de usuários.
@@ -154,9 +186,9 @@ Esta API permite a criação de contas bancárias, adição de contas a usuário
     }
   ]
 
-## 5. Consulta de por Id
+## 6. Consulta de por Id
 
-### 5.1 Obtenção de Todas as Contas de um usuario por ID
+### 6.1 Obtenção de Todas as Contas de um usuario por ID
 
 - **URL:** `GET /api/bankuser/userAccounts/{clientId}`
 - **Descrição:** Retorna informações de todas as contas de usuários.
