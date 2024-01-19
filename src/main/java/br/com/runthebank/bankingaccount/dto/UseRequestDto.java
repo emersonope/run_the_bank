@@ -1,16 +1,15 @@
 package br.com.runthebank.bankingaccount.dto;
 
 import br.com.runthebank.bankingaccount.enums.AccountType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UseRequest {
+@Getter
+@Setter
+public class UseRequestDto {
     private String firstName;
     private String lastName;
     private String gender;

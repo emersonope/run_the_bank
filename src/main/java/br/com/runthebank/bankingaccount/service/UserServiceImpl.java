@@ -1,9 +1,9 @@
 package br.com.runthebank.bankingaccount.service;
 
-import br.com.runthebank.bankingaccount.dto.AccountInfo;
-import br.com.runthebank.bankingaccount.dto.PaymentRequest;
-import br.com.runthebank.bankingaccount.dto.UseRequest;
-import br.com.runthebank.bankingaccount.dto.UserResponse;
+import br.com.runthebank.bankingaccount.dto.AccountInfoDto;
+import br.com.runthebank.bankingaccount.dto.PaymentRequestDto;
+import br.com.runthebank.bankingaccount.dto.UseRequestDto;
+import br.com.runthebank.bankingaccount.dto.UserResponseDto;
 import br.com.runthebank.bankingaccount.enums.AccountStatus;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import br.com.runthebank.bankingaccount.enums.ResponseCode;
@@ -48,30 +48,30 @@ public class UserServiceImpl implements UserService {
      * verificar se o usuario ja tem uma conta
      */
     @Override
-    public ResponseEntity<UserResponse> createAccount(UseRequest useRequest) {
+    public ResponseEntity<UserResponseDto> createAccount(UseRequestDto useRequestDto) {
         try {
-            AccountValidationUtils.validateAccountType(useRequest);
+            AccountValidationUtils.validateAccountType(useRequestDto);
 
-            String document = getDocument(useRequest);
+            String document = getDocument(useRequestDto);
 
             if (document != null && userRepository.existsByCpfOrCnpj(document, document)) {
                 throw new UserAlreadyExistsException("User with the provided document already exists.");
             }
 
-            Account newAccount = Account.createNewAccount(useRequest.getAccountType());
+            Account newAccount = Account.createNewAccount(useRequestDto.getAccountType());
             newAccount = accountRepository.save(newAccount);
 
-            User newUser = User.createUserFromRequest(useRequest, newAccount);
+            User newUser = User.createUserFromRequest(useRequestDto, newAccount);
             newUser.addAccount(newAccount);
             newUser = userRepository.save(newUser);
 
             final User finalUser = newUser;
 
-            UserResponse userResponse = UserResponse.builder()
+            UserResponseDto userResponseDto = UserResponseDto.builder()
                     .responseCode(ResponseCode.SUCCESS)
                     .responseMessage(ResponseMessage.USER_CREATED_SUCCESSFULLY)
-                    .accountInfoList(finalUser.getAccounts().stream()
-                            .map(account -> AccountInfo.builder()
+                    .accountInfoDtoList(finalUser.getAccounts().stream()
+                            .map(account -> AccountInfoDto.builder()
                                     .accountBalance(account.getAccountBalance())
                                     .branchNumber(account.getBranchNumber())
                                     .accountNumber(account.getAccountNumber())
@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
                             .collect(Collectors.toList()))
                     .build();
 
-            return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+            return new ResponseEntity<>(userResponseDto, HttpStatus.CREATED);
         } catch (UserAlreadyExistsException e) {
             logger.error("There was an error while trying to create an User: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -96,12 +96,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private String getDocument(UseRequest useRequest) {
-        return useRequest.getAccountType() == AccountType.PF ? useRequest.getCpf() : useRequest.getCnpj();
+    private String getDocument(UseRequestDto useRequestDto) {
+        return useRequestDto.getAccountType() == AccountType.PF ? useRequestDto.getCpf() : useRequestDto.getCnpj();
     }
 
     @Override
-    public ResponseEntity<UserResponse> addAccount(Long userId) {
+    public ResponseEntity<UserResponseDto> addAccount(Long userId) {
         try {
             User existingUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
@@ -119,11 +119,11 @@ public class UserServiceImpl implements UserService {
             accountRepository.save(newAccount);
 
 
-            UserResponse userResponse = UserResponse.builder()
+            UserResponseDto userResponseDto = UserResponseDto.builder()
                     .responseCode(ResponseCode.SUCCESS)
                     .responseMessage(ResponseMessage.ACCOUNT_CREATED_SUCCESSFULLY)
-                    .accountInfoList(existingUser.getAccounts().stream()
-                            .map(account -> AccountInfo.builder()
+                    .accountInfoDtoList(existingUser.getAccounts().stream()
+                            .map(account -> AccountInfoDto.builder()
                                     .accountBalance(account.getAccountBalance())
                                     .branchNumber(account.getBranchNumber())
                                     .accountNumber(account.getAccountNumber())
@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
                             .collect(Collectors.toList()))
                     .build();
 
-            return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+            return new ResponseEntity<>(userResponseDto, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             logger.error("Invalid Data: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -153,23 +153,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseEntity<UserResponse> makePayment(Long userId, PaymentRequest paymentRequest) {
+    public ResponseEntity<UserResponseDto> makePayment(Long userId, PaymentRequestDto paymentRequestDto) {
         try {
             User sourceUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("Source User not found with id: " + userId));
 
             validateUser(sourceUser);
 
-            String sourceBranch = paymentRequest.getSourceBranch();
-            String sourceAccountNumber = paymentRequest.getSourceAccountNumber();
-            AccountType sourceAccountType = paymentRequest.getSourceAccountType();
+            String sourceBranch = paymentRequestDto.getSourceBranch();
+            String sourceAccountNumber = paymentRequestDto.getSourceAccountNumber();
+            AccountType sourceAccountType = paymentRequestDto.getSourceAccountType();
 
             Account sourceAccount = getActiveAccount(sourceUser, sourceBranch, sourceAccountNumber, sourceAccountType);
 
-            BigDecimal amount = paymentRequest.getAmount();
-            String destinationBranch = paymentRequest.getDestinationBranch();
-            String destinationAccountNumber = paymentRequest.getDestinationAccountNumber();
-            AccountType destinationAccountType = paymentRequest.getAccountType();
+            BigDecimal amount = paymentRequestDto.getAmount();
+            String destinationBranch = paymentRequestDto.getDestinationBranch();
+            String destinationAccountNumber = paymentRequestDto.getDestinationAccountNumber();
+            AccountType destinationAccountType = paymentRequestDto.getAccountType();
 
             User targetUser = userRepository.findUserByAccount(destinationBranch, destinationAccountNumber, destinationAccountType)
                     .orElseThrow(() -> new IllegalArgumentException("Target User not found with account details."));
@@ -194,17 +194,17 @@ public class UserServiceImpl implements UserService {
 
             boolean notificationSent = sendNotification();
 
-            UserResponse userResponse = UserResponse.builder()
+            UserResponseDto userResponseDto = UserResponseDto.builder()
                     .responseCode(ResponseCode.SUCCESS)
                     .responseMessage(ResponseMessage.TRANSACTION_SUCCESSFULLY_COMPLETED)
                     .notificationSent(notificationSent)
-                    .accountInfoList(Arrays.asList(
+                    .accountInfoDtoList(Arrays.asList(
                             buildAccountInfo(sourceAccount, sourceUser),
                             buildAccountInfo(targetAccount, targetUser)
                     ))
                     .build();
 
-            return new ResponseEntity<>(userResponse, HttpStatus.OK);
+            return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
         } catch (InactiveAccountException | InsufficientFundsException e) {
             logger.error("Account error: {}", e.getMessage());
             throw e;
@@ -224,8 +224,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User does not have an active account with the specified details."));
     }
 
-    private AccountInfo buildAccountInfo(Account account, User user) {
-        return AccountInfo.builder()
+    private AccountInfoDto buildAccountInfo(Account account, User user) {
+        return AccountInfoDto.builder()
                 .accountBalance(account.getAccountBalance())
                 .branchNumber(account.getBranchNumber())
                 .accountNumber(account.getAccountNumber())
@@ -253,7 +253,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<UserResponse> depositToAccount(String branchNumber, String accountNumber, BigDecimal amount) {
+    public ResponseEntity<UserResponseDto> depositToAccount(String branchNumber, String accountNumber, BigDecimal amount) {
         try {
 
             if (branchNumber == null || accountNumber == null || amount == null) {
@@ -270,11 +270,11 @@ public class UserServiceImpl implements UserService {
             targetAccount.setAccountBalance(targetAccount.getAccountBalance().add(amount));
             accountRepository.save(targetAccount);
 
-            UserResponse userResponse = UserResponse.builder()
+            UserResponseDto userResponseDto = UserResponseDto.builder()
                     .responseCode(ResponseCode.SUCCESS)
                     .responseMessage(ResponseMessage.TRANSACTION_SUCCESSFULLY_COMPLETED)
-                    .accountInfoList(Collections.singletonList(
-                            AccountInfo.builder()
+                    .accountInfoDtoList(Collections.singletonList(
+                            AccountInfoDto.builder()
                                     .accountBalance(targetAccount.getAccountBalance())
                                     .branchNumber(targetAccount.getBranchNumber())
                                     .accountNumber(targetAccount.getAccountNumber())
@@ -288,7 +288,7 @@ public class UserServiceImpl implements UserService {
 
             sendNotification();
 
-            return new ResponseEntity<>(userResponse, HttpStatus.OK);
+            return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
         } catch (IllegalArgumentException | InactiveAccountException e) {
             logger.error("Invalid data or inactive account: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -310,16 +310,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<List<UserResponse>> getAllUsersAndAccounts() {
+    public ResponseEntity<List<UserResponseDto>> getAllUsersAndAccounts() {
         try {
             List<User> allUsers = userRepository.findAll();
 
-            List<UserResponse> userResponses = allUsers.stream()
-                    .map(user -> UserResponse.builder()
+            List<UserResponseDto> userResponsDtos = allUsers.stream()
+                    .map(user -> UserResponseDto.builder()
                             .responseCode(ResponseCode.SUCCESS)
                             .responseMessage(ResponseMessage.USER_FOUND_SUCCESSFULLY)
-                            .accountInfoList(user.getAccounts().stream()
-                                    .map(account -> AccountInfo.builder()
+                            .accountInfoDtoList(user.getAccounts().stream()
+                                    .map(account -> AccountInfoDto.builder()
                                             .accountBalance(account.getAccountBalance())
                                             .branchNumber(account.getBranchNumber())
                                             .accountNumber(account.getAccountNumber())
@@ -332,7 +332,7 @@ public class UserServiceImpl implements UserService {
                             .build())
                     .collect(Collectors.toList());
 
-            return new ResponseEntity<>(userResponses, HttpStatus.OK);
+            return new ResponseEntity<>(userResponsDtos, HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Server Error: {}", e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -340,11 +340,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<List<AccountInfo>> getUserAccounts(Long clientId) {
+    public ResponseEntity<List<AccountInfoDto>> getUserAccounts(Long clientId) {
         try {
-            List<AccountInfo> userAccounts = userRepository.findById(clientId)
+            List<AccountInfoDto> userAccounts = userRepository.findById(clientId)
                     .map(user -> user.getAccounts().stream()
-                            .map(account -> AccountInfo.builder()
+                            .map(account -> AccountInfoDto.builder()
                                     .accountBalance(account.getAccountBalance())
                                     .branchNumber(account.getBranchNumber())
                                     .accountNumber(account.getAccountNumber())

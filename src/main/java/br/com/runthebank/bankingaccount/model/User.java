@@ -1,6 +1,6 @@
 package br.com.runthebank.bankingaccount.model;
 
-import br.com.runthebank.bankingaccount.dto.UseRequest;
+import br.com.runthebank.bankingaccount.dto.UseRequestDto;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +12,7 @@ import org.hibernate.validator.constraints.br.CPF;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -45,17 +46,17 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime modifiedAt;
 
-    public static User createUserFromRequest(UseRequest useRequest, Account newAccount) {
+    public static User createUserFromRequest(UseRequestDto useRequestDto, Account newAccount) {
         return User.builder()
-                .firstName(useRequest.getFirstName())
-                .lastName(useRequest.getLastName())
-                .gender(useRequest.getGender())
-                .address(useRequest.getAddress())
-                .stateOfOriging(useRequest.getStateOfOriging())
-                .email(useRequest.getEmail())
-                .cpf(useRequest.getAccountType() == AccountType.PF ? useRequest.getCpf() : null)
-                .cnpj(useRequest.getAccountType() == AccountType.PJ ? useRequest.getCnpj() : null)
-                .phoneNumber(useRequest.getPhoneNumber())
+                .firstName(useRequestDto.getFirstName())
+                .lastName(useRequestDto.getLastName())
+                .gender(useRequestDto.getGender())
+                .address(useRequestDto.getAddress())
+                .stateOfOriging(useRequestDto.getStateOfOriging())
+                .email(useRequestDto.getEmail())
+                .cpf(useRequestDto.getAccountType() == AccountType.PF ? useRequestDto.getCpf() : null)
+                .cnpj(useRequestDto.getAccountType() == AccountType.PJ ? useRequestDto.getCnpj() : null)
+                .phoneNumber(useRequestDto.getPhoneNumber())
                 .build();
     }
     public void addAccount(Account account) {
@@ -65,4 +66,48 @@ public class User {
         accounts.add(account);
         account.setUser(this);
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", gender='" + gender + '\'' +
+                ", address='" + address + '\'' +
+                ", stateOfOriging='" + stateOfOriging + '\'' +
+                ", email='" + email + '\'' +
+                ", accounts=" + accounts +
+                ", cpf='" + cpf + '\'' +
+                ", cnpj='" + cnpj + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", createdAt=" + createdAt +
+                ", modifiedAt=" + modifiedAt +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) &&
+                Objects.equals(firstName, user.firstName) &&
+                Objects.equals(lastName, user.lastName) &&
+                Objects.equals(gender, user.gender) &&
+                Objects.equals(address, user.address) &&
+                Objects.equals(stateOfOriging, user.stateOfOriging) &&
+                Objects.equals(email, user.email) &&
+                Objects.equals(cpf, user.cpf) &&
+                Objects.equals(cnpj, user.cnpj) &&
+                Objects.equals(phoneNumber, user.phoneNumber) &&
+                Objects.equals(createdAt, user.createdAt) &&
+                Objects.equals(modifiedAt, user.modifiedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, firstName, lastName, gender, address, stateOfOriging, email, cpf, cnpj, phoneNumber, createdAt, modifiedAt);
+    }
+
 }

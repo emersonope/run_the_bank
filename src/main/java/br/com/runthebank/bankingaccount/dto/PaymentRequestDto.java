@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentRequest {
+public class PaymentRequestDto {
 
     @NotNull(message = "Amount is required")
     private BigDecimal amount;

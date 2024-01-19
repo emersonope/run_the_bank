@@ -2,10 +2,7 @@ package br.com.runthebank.bankingaccount.dto;
 
 import br.com.runthebank.bankingaccount.enums.ResponseCode;
 import br.com.runthebank.bankingaccount.enums.ResponseMessage;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -13,10 +10,12 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserResponse {
+@Getter
+@Setter
+public class UserResponseDto {
 
     private ResponseCode responseCode;
     private ResponseMessage responseMessage;
-    private List<AccountInfo> accountInfoList;
+    private List<AccountInfoDto> accountInfoDtoList;
     private boolean notificationSent;
 }

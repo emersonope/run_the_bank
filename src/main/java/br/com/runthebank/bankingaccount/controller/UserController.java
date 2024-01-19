@@ -1,20 +1,16 @@
 package br.com.runthebank.bankingaccount.controller;
 
 import br.com.runthebank.bankingaccount.dto.*;
-import br.com.runthebank.bankingaccount.enums.AccountType;
-import br.com.runthebank.bankingaccount.model.Account;
 import br.com.runthebank.bankingaccount.service.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bankuser")
@@ -30,8 +26,8 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping
-    public ResponseEntity<UserResponse> createAccount(@RequestBody UseRequest useRequest) {
-        return userService.createAccount(useRequest);
+    public ResponseEntity<UserResponseDto> createAccount(@RequestBody UseRequestDto useRequestDto) {
+        return userService.createAccount(useRequestDto);
     }
 
     @Operation(description = "Create an account to an existing user")
@@ -41,7 +37,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/{userId}/addAccount")
-    public ResponseEntity<UserResponse> addAccount(@PathVariable Long userId) {
+    public ResponseEntity<UserResponseDto> addAccount(@PathVariable Long userId) {
         return userService.addAccount(userId);
     }
 
@@ -52,9 +48,9 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/{userId}/makePayment")
-    public ResponseEntity<UserResponse> makePayment(@PathVariable Long userId, @RequestBody PaymentRequest paymentRequest) {
+    public ResponseEntity<UserResponseDto> makePayment(@PathVariable Long userId, @RequestBody PaymentRequestDto paymentRequestDto) {
 
-        return userService.makePayment(userId, paymentRequest);
+        return userService.makePayment(userId, paymentRequestDto);
     }
 
     @Operation(description = "Deposit an amount into an account")
@@ -64,7 +60,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/deposit")
-    public ResponseEntity<UserResponse> depositToAccount(@RequestBody DepositRequestDTO depositRequestDTO) {
+    public ResponseEntity<UserResponseDto> depositToAccount(@RequestBody DepositRequestDto depositRequestDTO) {
         String branchNumber = depositRequestDTO.getBranchNumber();
         String accountNumber = depositRequestDTO.getAccountNumber();
         BigDecimal amount = depositRequestDTO.getAmount();
@@ -78,7 +74,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "User do not exist")
     })
     @GetMapping("/allUsersAndAccounts")
-    public ResponseEntity<List<UserResponse>> getAllUsersAndAccounts() {
+    public ResponseEntity<List<UserResponseDto>> getAllUsersAndAccounts() {
         return userService.getAllUsersAndAccounts();
     }
 
@@ -89,7 +85,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @GetMapping("/userAccounts/{clientId}")
-    public ResponseEntity<List<AccountInfo>> getUserAccounts(@PathVariable Long clientId) {
+    public ResponseEntity<List<AccountInfoDto>> getUserAccounts(@PathVariable Long clientId) {
         return userService.getUserAccounts(clientId);
     }
 

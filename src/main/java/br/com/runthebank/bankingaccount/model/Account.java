@@ -60,4 +60,19 @@ public class Account {
                 .status(AccountStatus.ATIVA)
                 .build();
     }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", branchNumber='" + branchNumber + '\'' +
+                ", accountNumber='" + accountNumber + '\'' +
+                ", accountBalance=" + accountBalance +
+                ", accountType=" + accountType +
+                ", user=" + user +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                ", modifiedAt=" + modifiedAt +
+                '}';
+    }
 }

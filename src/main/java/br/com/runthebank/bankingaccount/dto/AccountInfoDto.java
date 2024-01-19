@@ -1,10 +1,7 @@
 package br.com.runthebank.bankingaccount.dto;
 
 import br.com.runthebank.bankingaccount.enums.AccountStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -12,7 +9,9 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountInfo {
+@Getter
+@Setter
+public class AccountInfoDto {
 
     private String accountName;
     private String branchNumber;

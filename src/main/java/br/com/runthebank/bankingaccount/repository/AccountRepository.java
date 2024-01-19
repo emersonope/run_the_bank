@@ -9,7 +9,5 @@ import java.util.Optional;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
-//    List<Account> findByUserCpfOrUserCnpj(String cpf, String cnpj);
-
     Optional<Account> findByBranchNumberAndAccountNumber(String branchNumber, String accountNumber);
 }
