@@ -224,3 +224,45 @@ Em seguida rode a aplicacao normalmente na sua IDE de preferencia!
 		"status": "ATIVA"
     }
   ]
+  
+# Sugestao de melhoria:
+
+### 1. Logging Aprimorado:
+
+Melhorar o sistema de logging do projeto. Atualmente, o sistema está usando o Logger do SLF4J.
+
+### 2. Validações e Tratamento de Erros:
+
+Aprimorar as validações de entrada nos endpoints da API e fornecer respostas de erro mais descritivas. Mensagens claras de erro podem ser úteis para os consumidores da API.
+
+### 3. Segurança:
+
+Implementar medidas de segurança, como autenticação e autorização. Sugiro usar o Spring Security para proteger os endpoints.
+
+### 4. Documentação da API:
+
+Continuar usando o Swagger para documentar a API automaticamente. Isso é útil para os desenvolvedores que interagem com a API.
+
+### 5. Testes:
+
+Definir um percentual de cobertura adequada para os testes unitários e de integração.
+
+### 6. Gerenciamento de Transações:
+
+Verificar se as transações estão sendo gerenciadas corretamente, especialmente nos métodos do serviço que envolvem interações com o banco de dados.
+
+### 7. Tratamento de Exceções Personalizadas:
+
+Criar mais exceções personalizadas para tratar situações no domínio, pois isso pode ajudar a tornar o codigo mais legivel e facilitar o tratamento de erros.
+
+### 8. Monitoramento e Métricas:
+
+Integrar o aplicativo com ferramentas de monitoramento e geração de métricas para rastrear o desempenho e o comportamento em produção
+
+### 9. Cache:
+
+Avaliar a oportunidade de usar cache em algumas consultas ou operações que sao executadas com frequência
+
+### 10. Refatoração e Otimização:
+
+Continuar refatorando o código para garantir que seja limpo, modular e siga as melhores práticas, alem disso migrar para uma estrutura hexagonal seria interessante pois conseguimos ter uma melhor separacao das responsabilidades, testabilidade, adaptadores para Interfaces Externas e facilita a evolucao.
