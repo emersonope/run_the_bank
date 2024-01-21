@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -86,7 +87,7 @@ public class UserServiceImplTest {
 
     @Test
     void testAddAccount_UserNotFound() {
-        Long userId = 1L;
+        UUID userId = UUID.randomUUID();
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -97,7 +98,7 @@ public class UserServiceImplTest {
 
     @Test
     void testAddAccount_InvalidData() {
-        Long userId = null;
+        UUID userId = null;
 
         ResponseEntity<UserResponseDto> response = userService.addAccount(userId);
 

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/bankuser")
@@ -37,7 +38,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/{userId}/addAccount")
-    public ResponseEntity<UserResponseDto> addAccount(@PathVariable Long userId) {
+    public ResponseEntity<UserResponseDto> addAccount(@PathVariable UUID userId) {
         return userService.addAccount(userId);
     }
 
@@ -48,7 +49,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/{userId}/makePayment")
-    public ResponseEntity<UserResponseDto> makePayment(@PathVariable Long userId, @RequestBody PaymentRequestDto paymentRequestDto) {
+    public ResponseEntity<UserResponseDto> makePayment(@PathVariable UUID userId, @RequestBody PaymentRequestDto paymentRequestDto) {
 
         return userService.makePayment(userId, paymentRequestDto);
     }
@@ -85,7 +86,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @GetMapping("/userAccounts/{clientId}")
-    public ResponseEntity<List<AccountInfoDto>> getUserAccounts(@PathVariable Long clientId) {
+    public ResponseEntity<List<AccountInfoDto>> getUserAccounts(@PathVariable UUID clientId) {
         return userService.getUserAccounts(clientId);
     }
 

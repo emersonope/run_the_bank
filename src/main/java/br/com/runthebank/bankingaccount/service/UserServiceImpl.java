@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,7 +102,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<UserResponseDto> addAccount(Long userId) {
+    public ResponseEntity<UserResponseDto> addAccount(UUID userId) {
         try {
             User existingUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
@@ -153,7 +154,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResponseEntity<UserResponseDto> makePayment(Long userId, PaymentRequestDto paymentRequestDto) {
+    public ResponseEntity<UserResponseDto> makePayment(UUID userId, PaymentRequestDto paymentRequestDto) {
         try {
             User sourceUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("Source User not found with id: " + userId));
@@ -340,7 +341,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<List<AccountInfoDto>> getUserAccounts(Long clientId) {
+    public ResponseEntity<List<AccountInfoDto>> getUserAccounts(UUID clientId) {
         try {
             List<AccountInfoDto> userAccounts = userRepository.findById(clientId)
                     .map(user -> user.getAccounts().stream()
