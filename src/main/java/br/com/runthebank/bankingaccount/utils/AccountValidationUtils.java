@@ -1,6 +1,6 @@
 package br.com.runthebank.bankingaccount.utils;
 
-import br.com.runthebank.bankingaccount.dto.UseRequestDto;
+import br.com.runthebank.bankingaccount.dto.request.UseRequestDto;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 
 public class AccountValidationUtils {

@@ -1,6 +1,9 @@
 package br.com.runthebank.bankingaccount.controller;
 
-import br.com.runthebank.bankingaccount.dto.*;
+import br.com.runthebank.bankingaccount.dto.request.DepositRequestDto;
+import br.com.runthebank.bankingaccount.dto.request.PaymentRequestDto;
+import br.com.runthebank.bankingaccount.dto.request.UseRequestDto;
+import br.com.runthebank.bankingaccount.dto.response.*;
 import br.com.runthebank.bankingaccount.service.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,7 +41,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/{userId}/addAccount")
-    public ResponseEntity<UserResponseDto> addAccount(@PathVariable UUID userId) {
+    public ResponseEntity<AccountResponseDto> addAccount(@PathVariable UUID userId) {
         return userService.addAccount(userId);
     }
 
@@ -49,7 +52,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/{userId}/makePayment")
-    public ResponseEntity<UserResponseDto> makePayment(@PathVariable UUID userId, @RequestBody PaymentRequestDto paymentRequestDto) {
+    public ResponseEntity<PaymentResponseDto> makePayment(@PathVariable UUID userId, @RequestBody PaymentRequestDto paymentRequestDto) {
 
         return userService.makePayment(userId, paymentRequestDto);
     }
@@ -61,7 +64,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "The server rejects the request, deeming it a client error.")
     })
     @PostMapping("/deposit")
-    public ResponseEntity<UserResponseDto> depositToAccount(@RequestBody DepositRequestDto depositRequestDTO) {
+    public ResponseEntity<DepositResponseDto> depositToAccount(@RequestBody DepositRequestDto depositRequestDTO) {
         String branchNumber = depositRequestDTO.getBranchNumber();
         String accountNumber = depositRequestDTO.getAccountNumber();
         BigDecimal amount = depositRequestDTO.getAmount();
@@ -74,9 +77,9 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Return the user informatio & account"),
             @ApiResponse(responseCode = "400", description = "User do not exist")
     })
-    @GetMapping("/allUsersAndAccounts")
-    public ResponseEntity<List<UserResponseDto>> getAllUsersAndAccounts() {
-        return userService.getAllUsersAndAccounts();
+    @GetMapping("/allUsersAccounts")
+    public ResponseEntity<List<AccountResponseDto>> getAllUsersAccounts() {
+        return userService.getAllUsersAccounts();
     }
 
     @Operation(description = "Return the user data by ID")

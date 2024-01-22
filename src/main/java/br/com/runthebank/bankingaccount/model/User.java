@@ -1,6 +1,6 @@
 package br.com.runthebank.bankingaccount.model;
 
-import br.com.runthebank.bankingaccount.dto.UseRequestDto;
+import br.com.runthebank.bankingaccount.dto.request.UseRequestDto;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import jakarta.persistence.*;
 import lombok.*;

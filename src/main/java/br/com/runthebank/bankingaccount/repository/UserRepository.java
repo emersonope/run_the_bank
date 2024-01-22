@@ -20,4 +20,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findUserByAccount(@Param("branchNumber") String branchNumber,
                                      @Param("accountNumber") String accountNumber,
                                      @Param("accountType") AccountType accountType);
+
+    @Query("SELECT u FROM User u INNER JOIN u.accounts a " +
+            "WHERE a.branchNumber = :branchNumber " +
+            "AND a.accountNumber = :accountNumber")
+    Optional<User> findUserByAccountBranch(@Param("branchNumber") String branchNumber,
+                                           @Param("accountNumber") String accountNumber);
 }

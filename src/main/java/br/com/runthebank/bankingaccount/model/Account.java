@@ -23,7 +23,7 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID account_id;
     private String branchNumber;
     private String accountNumber;
     private BigDecimal accountBalance;
@@ -65,7 +65,7 @@ public class Account {
     @Override
     public String toString() {
         return "Account{" +
-                "id=" + id +
+                "id=" + account_id +
                 ", branchNumber='" + branchNumber + '\'' +
                 ", accountNumber='" + accountNumber + '\'' +
                 ", accountBalance=" + accountBalance +

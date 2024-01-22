@@ -1,4 +1,4 @@
-package br.com.runthebank.bankingaccount.dto;
+package br.com.runthebank.bankingaccount.dto.request;
 
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import lombok.*;

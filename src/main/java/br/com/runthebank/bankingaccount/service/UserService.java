@@ -1,9 +1,8 @@
 package br.com.runthebank.bankingaccount.service;
 
-import br.com.runthebank.bankingaccount.dto.AccountInfoDto;
-import br.com.runthebank.bankingaccount.dto.PaymentRequestDto;
-import br.com.runthebank.bankingaccount.dto.UseRequestDto;
-import br.com.runthebank.bankingaccount.dto.UserResponseDto;
+import br.com.runthebank.bankingaccount.dto.request.PaymentRequestDto;
+import br.com.runthebank.bankingaccount.dto.request.UseRequestDto;
+import br.com.runthebank.bankingaccount.dto.response.*;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
@@ -14,13 +13,13 @@ public interface UserService {
 
     ResponseEntity<UserResponseDto> createAccount(UseRequestDto useRequestDto);
 
-    ResponseEntity<UserResponseDto> addAccount(UUID userId);
+    ResponseEntity<AccountResponseDto> addAccount(UUID userId);
 
-    ResponseEntity<UserResponseDto> makePayment(UUID userId, PaymentRequestDto paymentRequestDto);
+    ResponseEntity<PaymentResponseDto> makePayment(UUID userId, PaymentRequestDto paymentRequestDto);
 
-    ResponseEntity<UserResponseDto> depositToAccount(String branchNumber, String accountNumber, BigDecimal amount);
+    ResponseEntity<DepositResponseDto> depositToAccount(String branchNumber, String accountNumber, BigDecimal amount);
 
-    ResponseEntity<List<UserResponseDto>> getAllUsersAndAccounts();
+    ResponseEntity<List<AccountResponseDto>> getAllUsersAccounts();
 
     ResponseEntity<List<AccountInfoDto>> getUserAccounts(UUID clientId);
 }

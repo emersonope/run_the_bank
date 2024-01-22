@@ -1,4 +1,4 @@
-package br.com.runthebank.bankingaccount.dto;
+package br.com.runthebank.bankingaccount.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;

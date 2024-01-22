@@ -1,6 +1,8 @@
 package br.com.runthebank.bankingaccount.service;
 
-import br.com.runthebank.bankingaccount.dto.*;
+import br.com.runthebank.bankingaccount.dto.request.UseRequestDto;
+import br.com.runthebank.bankingaccount.dto.response.AccountResponseDto;
+import br.com.runthebank.bankingaccount.dto.response.UserResponseDto;
 import br.com.runthebank.bankingaccount.enums.AccountType;
 import br.com.runthebank.bankingaccount.enums.ResponseCode;
 import br.com.runthebank.bankingaccount.enums.ResponseMessage;
@@ -91,7 +93,7 @@ public class UserServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        ResponseEntity<UserResponseDto> response = userService.addAccount(userId);
+        ResponseEntity<AccountResponseDto> response = userService.addAccount(userId);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -100,7 +102,7 @@ public class UserServiceImplTest {
     void testAddAccount_InvalidData() {
         UUID userId = null;
 
-        ResponseEntity<UserResponseDto> response = userService.addAccount(userId);
+        ResponseEntity<AccountResponseDto> response = userService.addAccount(userId);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }

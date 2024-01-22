@@ -1,4 +1,4 @@
-package br.com.runthebank.bankingaccount.dto;
+package br.com.runthebank.bankingaccount.dto.response;
 
 import br.com.runthebank.bankingaccount.enums.ResponseCode;
 import br.com.runthebank.bankingaccount.enums.ResponseMessage;
@@ -12,10 +12,10 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class UserResponseDto {
+public class AccountResponseDto {
 
     private ResponseCode responseCode;
     private ResponseMessage responseMessage;
     private List<AccountInfoDto> accountInfoDtoList;
-    private boolean notificationSent;
+
 }
